@@ -3,7 +3,7 @@
 
 #include "ingredients/globalization_mechanism/GlobalizationMechanismFactory.hpp"
 #include "ingredients/constraint_relaxation_strategy/ConstraintRelaxationStrategyFactory.hpp"
-#include "interfaces/AMPL/AMPLModel.hpp"
+#include "AMPLModel.hpp"
 #include "Uno.hpp"
 #include "model/ModelFactory.hpp"
 #include "tools/Logger.hpp"
