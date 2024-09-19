@@ -15,11 +15,12 @@ project(unopy)
 
 include_directories("${CMAKE_SOURCE_DIR}/../../uno")
 
-file (GLOB SOURCE_FILES ${CMAKE_SOURCE_DIR}/../../uno/tools/Options.cpp)
+set(UNO_DIRECTORY ${CMAKE_SOURCE_DIR}/../../uno)
+file (GLOB SOURCE_FILES ${UNO_DIRECTORY}/tools/Options.cpp)
 file (GLOB HEADER_FILES
-		${CMAKE_SOURCE_DIR}/../../uno/linear_algebra/SparseVector.hpp
-		${CMAKE_SOURCE_DIR}/../../uno/linear_algebra/RectangularMatrix.hpp
-		${CMAKE_SOURCE_DIR}/../../uno/tools/Options.hpp)
+		${UNO_DIRECTORY}/linear_algebra/SparseVector.hpp
+		${UNO_DIRECTORY}/linear_algebra/RectangularMatrix.hpp
+		${UNO_DIRECTORY}/tools/Options.hpp)
 file (GLOB PYTHON_FILES SparseVector.cpp RectangularMatrix.cpp Options.cpp unopy.cpp)
 
 find_package(pybind11 REQUIRED)
