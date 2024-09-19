@@ -13,9 +13,7 @@ namespace uno {
          .def("__setitem__", [](Options& options, const std::string& key, const std::string& value) {
             options[key] = value;
          }, py::arg("key"), py::arg("value"), "Set an option")
-         .def("__getitem__", [](const Options& options, const std::string& key) {
-            return options.at(key);
-         }, py::arg("key"), "Read an option")
+         .def("__getitem__", &Options::at, py::arg("key"), "Read an option")
          .def_static("get_default_options", &Options::get_default_options, py::arg("file_path"), "Read default options from an option file")
          // string representation
          .def("__repr__", [](const Options& options) {
