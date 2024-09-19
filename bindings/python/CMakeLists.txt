@@ -15,14 +15,16 @@ project(unopy)
 
 include_directories("${CMAKE_SOURCE_DIR}/../../uno")
 
-file (GLOB SOURCE_FILES "${CMAKE_SOURCE_DIR}/../../uno/*.cpp")
-file (GLOB PYTHON_FILES "unopy.cpp")
+file (GLOB SOURCE_FILES ${CMAKE_SOURCE_DIR}/../../uno/tools/Options.cpp)
+file (GLOB HEADER_FILES
+		${CMAKE_SOURCE_DIR}/../../uno/linear_algebra/SparseVector.hpp
+		${CMAKE_SOURCE_DIR}/../../uno/tools/Options.hpp)
+file (GLOB PYTHON_FILES SparseVector.cpp Options.cpp unopy.cpp)
 
 find_package(pybind11 REQUIRED)
 
 pybind11_add_module(unopy 
 	${SOURCE_FILES}
+	${HEADER_FILES}
 	${PYTHON_FILES}
 )
-
-target_link_libraries(unopy PUBLIC)
