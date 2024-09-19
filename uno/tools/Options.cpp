@@ -12,10 +12,6 @@ namespace uno {
       return this->options[key];
    }
 
-   const std::string& Options::operator[](const std::string& key) const {
-      return this->options.at(key);
-   }
-
    const std::string& Options::at(const std::string& key) const {
       try {
          const std::string& value = this->options.at(key);

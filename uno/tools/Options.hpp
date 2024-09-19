@@ -13,7 +13,7 @@ namespace uno {
       Options() = default;
 
       [[nodiscard]] std::string& operator[](const std::string& key);
-      [[nodiscard]] const std::string& operator[](const std::string& key) const;
+      [[nodiscard]] const std::string& at(const std::string& key) const;
 
       [[nodiscard]] const std::string& get_string(const std::string& key) const;
       [[nodiscard]] double get_double(const std::string& key) const;
@@ -32,8 +32,6 @@ namespace uno {
       std::map<std::string, std::string> options{};
       // keep track of the options that are used
       mutable std::map<std::string, bool> is_used{};
-
-      [[nodiscard]] const std::string& at(const std::string& key) const;
    };
 } // namespace
 
