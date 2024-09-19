@@ -12,7 +12,8 @@ namespace uno {
    public:
       Options() = default;
 
-      std::string& operator[](const std::string& key);
+      [[nodiscard]] std::string& operator[](const std::string& key);
+      [[nodiscard]] const std::string& operator[](const std::string& key) const;
 
       [[nodiscard]] const std::string& get_string(const std::string& key) const;
       [[nodiscard]] double get_double(const std::string& key) const;
@@ -22,6 +23,7 @@ namespace uno {
 
       void get_command_line_arguments(int argc, char* argv[]);
 
+      std::string to_string(bool only_used) const;
       void print(bool only_used) const;
 
       static Options get_default_options(const std::string& file_name);

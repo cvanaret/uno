@@ -12,6 +12,10 @@ namespace uno {
       return this->options[key];
    }
 
+   const std::string& Options::operator[](const std::string& key) const {
+      return this->options.at(key);
+   }
+
    const std::string& Options::at(const std::string& key) const {
       try {
          const std::string& value = this->options.at(key);
@@ -47,13 +51,21 @@ namespace uno {
       return entry == "yes";
    }
 
-   void Options::print(bool only_used) const {
-      std::cout << "Options:\n";
+   std::string Options::to_string(bool only_used) const {
+      std::string representation = "Options:";
       for (const auto& [key, value]: this->options) {
          if (not only_used || this->is_used[key]) {
-            std::cout << "- " << key << " = " << value << '\n';
+            representation += "\n- ";
+            representation += key;
+            representation += " = ";
+            representation += value;
          }
       }
+      return representation;
+   }
+
+   void Options::print(bool only_used) const {
+      std::cout << this->to_string(only_used) << '\n';
    }
 
    Options Options::get_default_options(const std::string& file_name) {
