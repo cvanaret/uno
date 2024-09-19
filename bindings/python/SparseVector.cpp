@@ -8,10 +8,10 @@ namespace uno {
       // SparseVector class (instantiated with double elements)
       py::class_<SparseVector<double>>(module, "SparseVector")
          // constructor
-         .def(py::init<size_t>(), py::arg("capacity"))
+         .def(py::init<size_t>(), py::arg("capacity"), "Constructor")
          // methods
          .def("size", &SparseVector<double>::size, "Number of elements of the sparse vector")
-         .def("insert", &SparseVector<double>::insert, "Insert an element into the sparse vector")
+         .def("insert", &SparseVector<double>::insert, py::arg("index"), py::arg("value"), "Insert an element into the sparse vector")
          .def("clear", &SparseVector<double>::clear, "Delete all elements in the sparse vector")
          .def("is_empty", &SparseVector<double>::is_empty, "True if the sparse vector is empty, false otherwise")
          // string representation

@@ -17,10 +17,18 @@ namespace uno {
    public:
       using value_type = ElementType;
 
-      RectangularMatrix(size_t number_rows, size_t number_columns): matrix(number_rows) {
+      RectangularMatrix(size_t number_rows, size_t number_columns): matrix(number_rows), number_rows(number_rows), number_columns(number_columns) {
          for (auto& row: this->matrix) {
             row.reserve(number_columns);
          }
+      }
+
+      [[nodiscard]] size_t get_number_rows() const {
+         return this->number_rows;
+      }
+
+      [[nodiscard]] size_t get_number_columns() const {
+         return this->number_columns;
       }
 
       SparseVector<ElementType>& operator[](size_t row_index) {
@@ -39,6 +47,8 @@ namespace uno {
 
    protected:
       std::vector<SparseVector<ElementType>> matrix;
+      const size_t number_rows;
+      const size_t number_columns;
    };
 } // namespace
 
