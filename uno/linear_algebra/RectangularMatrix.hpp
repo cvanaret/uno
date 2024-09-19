@@ -47,8 +47,8 @@ namespace uno {
 
    protected:
       std::vector<SparseVector<ElementType>> matrix;
-      const size_t number_rows;
-      const size_t number_columns;
+      size_t number_rows;
+      size_t number_columns;
    };
 } // namespace
 
