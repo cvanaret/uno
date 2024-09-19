@@ -14,6 +14,10 @@ namespace uno {
          .def("insert", &SparseVector<double>::insert, py::arg("index"), py::arg("value"), "Insert an element into the sparse vector")
          .def("clear", &SparseVector<double>::clear, "Delete all elements in the sparse vector")
          .def("is_empty", &SparseVector<double>::is_empty, "True if the sparse vector is empty, false otherwise")
+         // iterator
+         .def("__iter__", [](const SparseVector<double>& vector) {
+            return py::make_iterator(vector.begin(), vector.end());
+         }, "Iterator on the (index, value) pairs", py::keep_alive<0, 1>())
          // string representation
          .def("__repr__", [](const SparseVector<double>& vector) {
             std::string representation = "Sparse vector:";

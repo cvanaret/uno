@@ -37,6 +37,10 @@ namespace uno {
             return &a.vector != &b.vector || a.index != b.index;
          }
 
+         friend bool operator==(const iterator& a, const iterator& b) {
+            return &a.vector == &b.vector && a.index == b.index;
+         }
+
       protected:
          const SparseVector& vector;
          size_t index;
