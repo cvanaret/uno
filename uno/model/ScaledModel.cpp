@@ -11,7 +11,8 @@ namespace uno {
          Model(original_model->name + " -> scaled", original_model->number_variables, original_model->number_constraints,
                original_model->objective_sign),
          model(std::move(original_model)),
-         scaling(this->model->number_constraints, options.get_double("function_scaling_threshold")) {
+         scaling(this->model->number_constraints, options.get_double("function_scaling_threshold")),
+         scaled_multipliers(this->number_constraints) {
       if (options.get_bool("scale_functions")) {
          // evaluate the gradients at the current point
          initial_iterate.evaluate_objective_gradient(*this->model);
@@ -66,12 +67,20 @@ namespace uno {
          SymmetricMatrix<size_t, double>& hessian) const {
       // scale the objective and constraint multipliers
       const double scaled_objective_multiplier = objective_multiplier*this->scaling.get_objective_scaling();
-      // TODO preallocate this vector
-      static Vector<double> scaled_multipliers(this->number_constraints);
       for (size_t constraint_index: Range(this->number_constraints)) {
-         scaled_multipliers[constraint_index] = this->scaling.get_constraint_scaling(constraint_index) * multipliers[constraint_index];
+         this->scaled_multipliers[constraint_index] = this->scaling.get_constraint_scaling(constraint_index) * multipliers[constraint_index];
       }
-      this->model->evaluate_lagrangian_hessian(x, scaled_objective_multiplier, scaled_multipliers, hessian);
+      this->model->evaluate_lagrangian_hessian(x, scaled_objective_multiplier, this->scaled_multipliers, hessian);
+   }
+
+   void ScaledModel::compute_hessian_vector_product(const Vector<double>& x, double objective_multiplier, const Vector<double>& multipliers,
+         Vector<double>& result) const {
+      // scale the objective and constraint multipliers
+      const double scaled_objective_multiplier = objective_multiplier*this->scaling.get_objective_scaling();
+      for (size_t constraint_index: Range(this->number_constraints)) {
+         this->scaled_multipliers[constraint_index] = this->scaling.get_constraint_scaling(constraint_index) * multipliers[constraint_index];
+      }
+      this->model->compute_hessian_vector_product(x, scaled_objective_multiplier, this->scaled_multipliers, result);
    }
 
    double ScaledModel::variable_lower_bound(size_t variable_index) const {

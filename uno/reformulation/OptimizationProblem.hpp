@@ -42,6 +42,7 @@ namespace uno {
       virtual void evaluate_constraints(Iterate& iterate, std::vector<double>& constraints) const = 0;
       virtual void evaluate_constraint_jacobian(Iterate& iterate, RectangularMatrix<double>& constraint_jacobian) const = 0;
       virtual void evaluate_lagrangian_hessian(const Vector<double>& x, const Vector<double>& multipliers, SymmetricMatrix<size_t, double>& hessian) const = 0;
+      virtual void compute_hessian_vector_product(const Vector<double>& x, const Vector<double>& multipliers, Vector<double>& result) const = 0;
 
       [[nodiscard]] size_t get_number_original_variables() const;
       [[nodiscard]] virtual double variable_lower_bound(size_t variable_index) const = 0;

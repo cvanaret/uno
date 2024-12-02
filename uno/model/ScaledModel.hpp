@@ -6,6 +6,7 @@
 
 #include <memory>
 #include "Model.hpp"
+#include "linear_algebra/Vector.hpp"
 #include "preprocessing/Scaling.hpp"
 
 namespace uno {
@@ -23,6 +24,8 @@ namespace uno {
       void evaluate_constraint_jacobian(const Vector<double>& x, RectangularMatrix<double>& constraint_jacobian) const override;
       void evaluate_lagrangian_hessian(const Vector<double>& x, double objective_multiplier, const Vector<double>& multipliers,
             SymmetricMatrix<size_t, double>& hessian) const override;
+      void compute_hessian_vector_product(const Vector<double>& x, double objective_multiplier, const Vector<double>& multipliers,
+            Vector<double>& result) const override;
 
       [[nodiscard]] double variable_lower_bound(size_t variable_index) const override;
       [[nodiscard]] double variable_upper_bound(size_t variable_index) const override;
@@ -53,6 +56,7 @@ namespace uno {
    private:
       const std::unique_ptr<Model> model{};
       Scaling scaling;
+      mutable Vector<double> scaled_multipliers{};
    };
 } // namespace
 

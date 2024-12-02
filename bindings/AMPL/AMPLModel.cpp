@@ -101,8 +101,8 @@ namespace uno {
       fint error_flag = 0;
       // prevent ASL to crash by catching all evaluation errors
       Jmp_buf err_jmp_uno;
-      asl->i.err_jmp_ = &err_jmp_uno;
-      asl->i.err_jmp1_ = &err_jmp_uno;
+      this->asl->i.err_jmp_ = &err_jmp_uno;
+      this->asl->i.err_jmp1_ = &err_jmp_uno;
       if (setjmp(err_jmp_uno.jb)) {
          error_flag = 1;
       }
@@ -205,6 +205,31 @@ namespace uno {
       }
       // unregister the vector of variables
       //this->asl->i.x_known = 0;
+   }
+
+   void AMPLModel::compute_hessian_vector_product(const Vector<double>& x, double objective_multiplier, const Vector<double>& multipliers,
+         Vector<double>& result) const {
+      fint error_flag = 0;
+      // prevent ASL to crash by catching all evaluation errors
+      Jmp_buf err_jmp_uno;
+      this->asl->i.err_jmp_ = &err_jmp_uno;
+      this->asl->i.err_jmp1_ = &err_jmp_uno;
+      if (setjmp(err_jmp_uno.jb)) {
+         error_flag = 1;
+      }
+
+      // scale by the objective sign
+      objective_multiplier *= this->objective_sign;
+      const int objective_number = -1;
+      // flip the signs of the multipliers: in AMPL, the Lagrangian is f + lambda.g, while Uno uses f - lambda.g
+      this->multipliers_with_flipped_sign = -multipliers;
+
+      // compute the Hessian-vector product
+      (this->asl->p.Hvcomp)(this->asl, result.data(), const_cast<double*>(x.data()), objective_number, &objective_multiplier,
+            const_cast<double*>(this->multipliers_with_flipped_sign.data()));
+      if (error_flag) {
+         throw HessianEvaluationError();
+      }
    }
 
    double AMPLModel::variable_lower_bound(size_t variable_index) const {
