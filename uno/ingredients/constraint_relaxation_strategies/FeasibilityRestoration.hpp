@@ -39,7 +39,7 @@ namespace uno {
       const OptimalityProblem optimality_problem;
       l1RelaxedProblem feasibility_problem;
       Phase current_phase{Phase::OPTIMALITY};
-      const std::string& subproblem_strategy;
+      const std::string& inequality_handling_method_name;
       const double linear_feasibility_tolerance;
       const bool switch_to_optimality_requires_linearized_feasibility;
       ProgressMeasures reference_optimality_progress{};

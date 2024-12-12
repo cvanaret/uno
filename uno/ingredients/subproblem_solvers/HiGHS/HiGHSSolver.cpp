@@ -1,10 +1,9 @@
 #include <cassert>
 #include "HiGHSSolver.hpp"
-#include "ingredients/constraint_relaxation_strategies/OptimizationProblem.hpp"
+#include "ingredients/subproblems/LagrangeNewtonSubproblem.hpp"
 #include "linear_algebra/SparseVector.hpp"
 #include "linear_algebra/Vector.hpp"
 #include "optimization/Direction.hpp"
-#include "optimization/Iterate.hpp"
 #include "optimization/WarmstartInformation.hpp"
 #include "options/Options.hpp"
 #include "symbolic/VectorView.hpp"
@@ -36,25 +35,24 @@ namespace uno {
       this->highs_solver.setOptionValue("output_flag", "false");
    }
 
-   void HiGHSSolver::solve_LP(const OptimizationProblem& problem, Iterate& current_iterate, const Vector<double>& /*initial_point*/,
-         Direction& direction, double trust_region_radius, const WarmstartInformation& warmstart_information) {
+   void HiGHSSolver::solve_LP(Statistics& /*statistics*/, LagrangeNewtonSubproblem& subproblem, const Vector<double>& /*initial_point*/,
+         Direction& direction, const WarmstartInformation& warmstart_information) {
       if (this->print_subproblem) {
          DEBUG << "LP:\n";
       }
-      this->set_up_subproblem(problem, current_iterate, trust_region_radius, warmstart_information);
-      this->solve_subproblem(problem, direction);
+      this->set_up_subproblem(subproblem, warmstart_information);
+      this->solve_subproblem(subproblem, direction);
    }
 
-   void HiGHSSolver::set_up_subproblem(const OptimizationProblem& problem, Iterate& current_iterate, double trust_region_radius,
-         const WarmstartInformation& warmstart_information) {
-      this->model.lp_.num_col_ = static_cast<HighsInt>(problem.number_variables);
-      this->model.lp_.num_row_ = static_cast<HighsInt>(problem.number_constraints);
+   void HiGHSSolver::set_up_subproblem(LagrangeNewtonSubproblem& subproblem, const WarmstartInformation& warmstart_information) {
+      this->model.lp_.num_col_ = static_cast<HighsInt>(subproblem.number_variables);
+      this->model.lp_.num_row_ = static_cast<HighsInt>(subproblem.number_constraints);
 
       // function evaluations
       if (warmstart_information.objective_changed) {
-         problem.evaluate_objective_gradient(current_iterate, this->linear_objective);
+         subproblem.evaluate_objective_gradient(this->linear_objective);
          // reset the linear part of the objective
-         for (size_t variable_index: Range(problem.number_variables)) {
+         for (size_t variable_index: Range(subproblem.number_variables)) {
             this->model.lp_.col_cost_[variable_index] = 0.;
          }
          // copy the sparse vector into the dense vector
@@ -63,73 +61,55 @@ namespace uno {
          }
       }
       if (warmstart_information.constraints_changed) {
-         problem.evaluate_constraints(current_iterate, this->constraints);
-         problem.evaluate_constraint_jacobian(current_iterate, this->constraint_jacobian);
-      }
+         // constraints
+         subproblem.evaluate_constraints(this->constraints);
 
-      // linear part of the objective
-      for (const auto [variable_index, value]: this->linear_objective) {
-         this->model.lp_.col_cost_[variable_index] = value;
-      }
+         // constraint Jacobian
+         subproblem.evaluate_constraint_jacobian(this->constraint_jacobian);
+         this->model.lp_.a_matrix_.value_.clear();
+         this->model.lp_.a_matrix_.index_.clear();
+         this->model.lp_.a_matrix_.start_.clear();
 
-      // constraint matrix
-      this->model.lp_.a_matrix_.value_.clear();
-      this->model.lp_.a_matrix_.index_.clear();
-      this->model.lp_.a_matrix_.start_.clear();
-
-      size_t number_nonzeros = 0;
-      this->model.lp_.a_matrix_.start_.emplace_back(number_nonzeros);
-      for (size_t constraint_index: Range(problem.number_constraints)) {
-         for (const auto [variable_index, value]: this->constraint_jacobian[constraint_index]) {
-            this->model.lp_.a_matrix_.value_.emplace_back(value);
-            this->model.lp_.a_matrix_.index_.emplace_back(variable_index);
-            number_nonzeros++;
-         }
+         size_t number_nonzeros = 0;
          this->model.lp_.a_matrix_.start_.emplace_back(number_nonzeros);
+         for (size_t constraint_index: Range(subproblem.number_constraints)) {
+            for (const auto [variable_index, value]: this->constraint_jacobian[constraint_index]) {
+               this->model.lp_.a_matrix_.value_.emplace_back(value);
+               this->model.lp_.a_matrix_.index_.emplace_back(variable_index);
+               number_nonzeros++;
+            }
+            this->model.lp_.a_matrix_.start_.emplace_back(number_nonzeros);
+         }
       }
 
       // variable bounds
       if (warmstart_information.variable_bounds_changed) {
-         // bounds of original variables intersected with trust region
-         for (size_t variable_index: Range(problem.get_number_original_variables())) {
-            this->model.lp_.col_lower_[variable_index] = std::max(-trust_region_radius,
-                  problem.variable_lower_bound(variable_index) - current_iterate.primals[variable_index]);
-            this->model.lp_.col_upper_[variable_index] = std::min(trust_region_radius,
-                  problem.variable_upper_bound(variable_index) - current_iterate.primals[variable_index]);
-         }
-         // bounds of additional variables (no trust region!)
-         for (size_t variable_index: Range(problem.get_number_original_variables(), problem.number_variables)) {
-            this->model.lp_.col_lower_[variable_index] = problem.variable_lower_bound(variable_index) - current_iterate.primals[variable_index];
-            this->model.lp_.col_upper_[variable_index] = problem.variable_upper_bound(variable_index) - current_iterate.primals[variable_index];
-         }
+         subproblem.set_variable_bounds(this->model.lp_.col_lower_, this->model.lp_.col_upper_);
       }
 
       // constraint bounds
       if (warmstart_information.constraint_bounds_changed || warmstart_information.constraints_changed) {
-         for (size_t constraint_index: Range(problem.number_constraints)) {
-            this->model.lp_.row_lower_[constraint_index] = problem.constraint_lower_bound(constraint_index) - this->constraints[constraint_index];
-            this->model.lp_.row_upper_[constraint_index] = problem.constraint_upper_bound(constraint_index) - this->constraints[constraint_index];
-         }
+         subproblem.set_constraint_bounds(this->constraints, this->model.lp_.row_lower_, this->model.lp_.row_upper_);
       }
 
       if (this->print_subproblem) {
-         DEBUG << "Linear objective part: "; print_vector(DEBUG, view(this->model.lp_.col_cost_, 0, problem.number_variables));
+         DEBUG << "Linear objective part: "; print_vector(DEBUG, view(this->model.lp_.col_cost_, 0, subproblem.number_variables));
          DEBUG << "Jacobian:\n";
          DEBUG << "J = "; print_vector(DEBUG, this->model.lp_.a_matrix_.value_);
          DEBUG << "with column start: "; print_vector(DEBUG, this->model.lp_.a_matrix_.start_);
          DEBUG << "and row index: "; print_vector(DEBUG, this->model.lp_.a_matrix_.index_);
-         for (size_t variable_index = 0; variable_index < problem.number_variables; variable_index++) {
+         for (size_t variable_index = 0; variable_index < subproblem.number_variables; variable_index++) {
             DEBUG << "d" << variable_index << " in [" << this->model.lp_.col_lower_[variable_index] << ", " <<
                this->model.lp_.col_upper_[variable_index] << "]\n";
          }
-         for (size_t constraint_index = 0; constraint_index < problem.number_constraints; constraint_index++) {
+         for (size_t constraint_index = 0; constraint_index < subproblem.number_constraints; constraint_index++) {
             DEBUG << "linearized c" << constraint_index << " in [" << this->model.lp_.row_lower_[constraint_index] << ", " <<
                this->model.lp_.row_upper_[constraint_index]<< "]\n";
          }
       }
    }
 
-   void HiGHSSolver::solve_subproblem(const OptimizationProblem& problem, Direction& direction) {
+   void HiGHSSolver::solve_subproblem(LagrangeNewtonSubproblem& subproblem, Direction& direction) {
       // solve the LP
       HighsStatus return_status = this->highs_solver.passModel(this->model);
       assert(return_status == HighsStatus::kOk);
@@ -157,7 +137,7 @@ namespace uno {
       direction.status = SubproblemStatus::OPTIMAL;
       const HighsSolution& solution = this->highs_solver.getSolution();
       // read the primal solution and bound dual solution
-      for (size_t variable_index = 0; variable_index < problem.number_variables; variable_index++) {
+      for (size_t variable_index = 0; variable_index < subproblem.number_variables; variable_index++) {
          direction.primals[variable_index] = solution.col_value[variable_index];
          const double bound_multiplier = solution.col_dual[variable_index];
          if (0. < bound_multiplier) {
@@ -168,7 +148,7 @@ namespace uno {
          }
       }
       // read the dual solution
-      for (size_t constraint_index = 0; constraint_index < problem.number_constraints; constraint_index++) {
+      for (size_t constraint_index = 0; constraint_index < subproblem.number_constraints; constraint_index++) {
          direction.multipliers.constraints[constraint_index] = solution.row_dual[constraint_index];
       }
       const HighsInfo& info = this->highs_solver.getInfo();

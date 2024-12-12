@@ -101,8 +101,8 @@ namespace uno {
       fint error_flag = 0;
       // prevent ASL to crash by catching all evaluation errors
       Jmp_buf err_jmp_uno;
-      asl->i.err_jmp_ = &err_jmp_uno;
-      asl->i.err_jmp1_ = &err_jmp_uno;
+      this->asl->i.err_jmp_ = &err_jmp_uno;
+      this->asl->i.err_jmp1_ = &err_jmp_uno;
       if (setjmp(err_jmp_uno.jb)) {
          error_flag = 1;
       }

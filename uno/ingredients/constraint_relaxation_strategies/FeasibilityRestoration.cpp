@@ -36,7 +36,7 @@ namespace uno {
                options),
          optimality_problem(std::forward<OptimalityProblem>(optimality_problem)),
          feasibility_problem(std::forward<l1RelaxedProblem>(feasibility_problem)),
-         subproblem_strategy(options.get_string("subproblem")),
+         inequality_handling_method_name(options.get_string("inequality_handling_method")),
          linear_feasibility_tolerance(options.get_double("tolerance")),
          switch_to_optimality_requires_linearized_feasibility(options.get_bool("switch_to_optimality_requires_linearized_feasibility")),
          reference_optimality_primals(optimality_problem.number_variables) {
@@ -71,7 +71,7 @@ namespace uno {
             this->solve_subproblem(statistics, this->optimality_problem, current_iterate, current_iterate.multipliers, direction, warmstart_information);
             if (direction.status == SubproblemStatus::INFEASIBLE) {
                // switch to the feasibility problem, starting from the current direction
-               statistics.set("status", std::string("infeasible " + this->subproblem_strategy));
+               statistics.set("status", std::string("infeasible " + this->inequality_handling_method_name));
                DEBUG << "/!\\ The subproblem is infeasible\n";
                this->switch_to_feasibility_problem(statistics, current_iterate, warmstart_information);
                this->inequality_handling_method->set_initial_point(direction.primals);

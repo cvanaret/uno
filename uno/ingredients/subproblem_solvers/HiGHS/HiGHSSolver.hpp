@@ -15,8 +15,8 @@ namespace uno {
       HiGHSSolver(size_t number_variables, size_t number_constraints, size_t number_objective_gradient_nonzeros, size_t number_jacobian_nonzeros,
             size_t number_hessian_nonzeros, const Options& options);
 
-      void solve_LP(const OptimizationProblem& problem, Iterate& current_iterate, const Vector<double>& initial_point, Direction& direction,
-            double trust_region_radius, const WarmstartInformation& warmstart_information) override;
+      void solve_LP(Statistics& statistics, LagrangeNewtonSubproblem& subproblem, const Vector<double>& initial_point, Direction& direction,
+            const WarmstartInformation& warmstart_information) override;
 
    protected:
       HighsModel model;
@@ -28,9 +28,8 @@ namespace uno {
 
       const bool print_subproblem;
 
-      void set_up_subproblem(const OptimizationProblem& problem, Iterate& current_iterate, double trust_region_radius,
-            const WarmstartInformation& warmstart_information);
-      void solve_subproblem(const OptimizationProblem& problem, Direction& direction);
+      void set_up_subproblem(LagrangeNewtonSubproblem& subproblem, const WarmstartInformation& warmstart_information);
+      void solve_subproblem(LagrangeNewtonSubproblem& subproblem, Direction& direction);
    };
 } // namespace
 

@@ -5,6 +5,7 @@
 #include "BQPDSolver.hpp"
 #include "ingredients/constraint_relaxation_strategies/OptimizationProblem.hpp"
 #include "ingredients/hessian_models/HessianModel.hpp"
+#include "ingredients/subproblems/LagrangeNewtonSubproblem.hpp"
 #include "linear_algebra/SymmetricMatrix.hpp"
 #include "linear_algebra/Vector.hpp"
 #include "optimization/Direction.hpp"
@@ -74,36 +75,34 @@ namespace uno {
       }
    }
 
-   void BQPDSolver::solve_LP(const OptimizationProblem& problem, Iterate& current_iterate, const Vector<double>& initial_point, Direction& direction,
-         double trust_region_radius, const WarmstartInformation& warmstart_information) {
+   void BQPDSolver::solve_LP(Statistics& /*statistics*/, LagrangeNewtonSubproblem& subproblem, const Vector<double>& initial_point,
+         Direction& direction, const WarmstartInformation& warmstart_information) {
       if (this->print_subproblem) {
          DEBUG << "LP:\n";
       }
-      this->set_up_subproblem(problem, current_iterate, trust_region_radius, warmstart_information);
-      this->solve_subproblem(problem, initial_point, direction, warmstart_information);
+      this->set_up_subproblem(subproblem, warmstart_information);
+      this->solve_subproblem(subproblem, initial_point, direction, warmstart_information);
    }
 
-   void BQPDSolver::solve_QP(Statistics& statistics, const OptimizationProblem& problem, Iterate& current_iterate,
-         const Vector<double>& current_multipliers, const Vector<double>& initial_point, Direction& direction, HessianModel& hessian_model,
-         double trust_region_radius, const WarmstartInformation& warmstart_information) {
-      this->set_up_subproblem(problem, current_iterate, trust_region_radius, warmstart_information);
+   void BQPDSolver::solve_QP(Statistics& statistics, LagrangeNewtonSubproblem& subproblem, const Vector<double>& initial_point, Direction& direction,
+         const WarmstartInformation& warmstart_information) {
+      this->set_up_subproblem(subproblem, warmstart_information);
       if (warmstart_information.objective_changed || warmstart_information.constraints_changed) {
-         hessian_model.evaluate(statistics, problem, current_iterate.primals, current_multipliers, this->hessian);
+         subproblem.evaluate_hessian(statistics, this->hessian);
          this->save_hessian_to_local_format();
       }
       if (this->print_subproblem) {
          DEBUG << "QP:\n";
       }
       DEBUG << "Hessian: " << this->hessian;
-      this->solve_subproblem(problem, initial_point, direction, warmstart_information);
+      this->solve_subproblem(subproblem, initial_point, direction, warmstart_information);
    }
 
    double BQPDSolver::hessian_quadratic_product(const Vector<double>& primal_direction) const {
       return this->hessian.quadratic_product(primal_direction, primal_direction);
    }
 
-   void BQPDSolver::set_up_subproblem(const OptimizationProblem& problem, Iterate& current_iterate, double trust_region_radius,
-         const WarmstartInformation& warmstart_information) {
+   void BQPDSolver::set_up_subproblem(LagrangeNewtonSubproblem& subproblem, const WarmstartInformation& warmstart_information) {
       // initialize wsc_ common block (Hessian & workspace for BQPD)
       // setting the common block here ensures that several instances of BQPD can run simultaneously
       WSC.mxws = static_cast<int>(this->size_hessian_workspace);
@@ -112,69 +111,59 @@ namespace uno {
 
       // function evaluations
       if (warmstart_information.objective_changed) {
-         problem.evaluate_objective_gradient(current_iterate, this->linear_objective);
+         subproblem.evaluate_objective_gradient(this->linear_objective);
       }
       if (warmstart_information.constraints_changed) {
-         problem.evaluate_constraints(current_iterate, this->constraints);
-         problem.evaluate_constraint_jacobian(current_iterate, this->constraint_jacobian);
+         subproblem.evaluate_constraints(this->constraints);
+         subproblem.evaluate_constraint_jacobian(this->constraint_jacobian);
       }
 
       // Jacobian (objective and constraints)
       if (warmstart_information.objective_changed || warmstart_information.constraints_changed) {
-         this->save_gradients_to_local_format(problem.number_constraints);
+         this->save_gradients_to_local_format(subproblem.number_constraints);
       }
 
       // variable bounds
       if (warmstart_information.variable_bounds_changed) {
-         // bounds of original variables intersected with trust region
-         for (size_t variable_index: Range(problem.get_number_original_variables())) {
-            this->lower_bounds[variable_index] = std::max(-trust_region_radius,
-                  problem.variable_lower_bound(variable_index) - current_iterate.primals[variable_index]);
-            this->upper_bounds[variable_index] = std::min(trust_region_radius,
-                  problem.variable_upper_bound(variable_index) - current_iterate.primals[variable_index]);
-         }
-         // bounds of additional variables (no trust region!)
-         for (size_t variable_index: Range(problem.get_number_original_variables(), problem.number_variables)) {
-            this->lower_bounds[variable_index] = problem.variable_lower_bound(variable_index) - current_iterate.primals[variable_index];
-            this->upper_bounds[variable_index] = problem.variable_upper_bound(variable_index) - current_iterate.primals[variable_index];
-         }
+         subproblem.set_variable_bounds(this->lower_bounds, this->upper_bounds);
       }
 
       // constraint bounds
       if (warmstart_information.constraint_bounds_changed || warmstart_information.constraints_changed) {
-         for (size_t constraint_index: Range(problem.number_constraints)) {
-            this->lower_bounds[problem.number_variables + constraint_index] = problem.constraint_lower_bound(constraint_index) -
-                                                                              this->constraints[constraint_index];
-            this->upper_bounds[problem.number_variables + constraint_index] = problem.constraint_upper_bound(constraint_index) -
-                                                                              this->constraints[constraint_index];
-         }
+         auto constraint_lower_bounds = view(this->lower_bounds, subproblem.number_variables,
+               subproblem.number_variables + subproblem.number_constraints);
+         auto constraint_upper_bounds = view(this->upper_bounds, subproblem.number_variables,
+               subproblem.number_variables + subproblem.number_constraints);
+         subproblem.set_constraint_bounds(this->constraints, constraint_lower_bounds, constraint_upper_bounds);
       }
-      for (size_t variable_index: Range(problem.number_variables + problem.number_constraints)) {
+
+      // postprocessing: make sure that infinite bounds take a large finite value
+      for (size_t variable_index: Range(subproblem.number_variables + subproblem.number_constraints)) {
          this->lower_bounds[variable_index] = std::max(-BIG, this->lower_bounds[variable_index]);
          this->upper_bounds[variable_index] = std::min(BIG, this->upper_bounds[variable_index]);
       }
    }
 
-   void BQPDSolver::solve_subproblem(const OptimizationProblem& problem, const Vector<double>& initial_point, Direction& direction,
+   void BQPDSolver::solve_subproblem(LagrangeNewtonSubproblem& subproblem, const Vector<double>& initial_point, Direction& direction,
          const WarmstartInformation& warmstart_information) {
       if (this->print_subproblem) {
          DEBUG << "objective gradient: " << this->linear_objective;
-         for (size_t constraint_index: Range(problem.number_constraints)) {
+         for (size_t constraint_index: Range(subproblem.number_constraints)) {
             DEBUG << "gradient c" << constraint_index << ": " << this->constraint_jacobian[constraint_index];
          }
-         for (size_t variable_index: Range(problem.number_variables)) {
+         for (size_t variable_index: Range(subproblem.number_variables)) {
             DEBUG << "d" << variable_index << " in [" << this->lower_bounds[variable_index] << ", " << this->upper_bounds[variable_index] << "]\n";
          }
-         for (size_t constraint_index: Range(problem.number_constraints)) {
-            DEBUG << "linearized c" << constraint_index << " in [" << this->lower_bounds[problem.number_variables + constraint_index] << ", " <<
-                  this->upper_bounds[problem.number_variables + constraint_index] << "]\n";
+         for (size_t constraint_index: Range(subproblem.number_constraints)) {
+            DEBUG << "linearized c" << constraint_index << " in [" << this->lower_bounds[subproblem.number_variables + constraint_index] << ", " <<
+                  this->upper_bounds[subproblem.number_variables + constraint_index] << "]\n";
          }
          DEBUG << "Initial point: " << initial_point << '\n';
       }
 
       direction.primals = initial_point;
-      const int n = static_cast<int>(problem.number_variables);
-      const int m = static_cast<int>(problem.number_constraints);
+      const int n = static_cast<int>(subproblem.number_variables);
+      const int m = static_cast<int>(subproblem.number_constraints);
 
       const BQPDMode mode = BQPDSolver::determine_mode(warmstart_information);
       const int mode_integer = static_cast<int>(mode);
@@ -191,11 +180,11 @@ namespace uno {
       direction.status = BQPDSolver::status_from_bqpd_status(bqpd_status);
 
       // project solution into bounds
-      for (size_t variable_index: Range(problem.number_variables)) {
+      for (size_t variable_index: Range(subproblem.number_variables)) {
          direction.primals[variable_index] = std::min(std::max(direction.primals[variable_index], this->lower_bounds[variable_index]),
                this->upper_bounds[variable_index]);
       }
-      this->set_multipliers(problem.number_variables, direction.multipliers);
+      this->set_multipliers(subproblem.number_variables, direction.multipliers);
    }
 
    BQPDMode BQPDSolver::determine_mode(const WarmstartInformation& warmstart_information) {
