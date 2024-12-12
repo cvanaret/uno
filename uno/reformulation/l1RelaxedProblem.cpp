@@ -113,6 +113,19 @@ namespace uno {
       }
    }
 
+   void l1RelaxedProblem::compute_hessian_vector_product(const Vector<double>& x, const Vector<double>& multipliers, Vector<double>& result) const {
+      this->model.compute_hessian_vector_product(x, this->objective_multiplier, multipliers, result);
+
+      // proximal contribution
+      if (this->proximal_center != nullptr && this->proximal_coefficient != 0.) {
+         for (size_t variable_index: Range(this->model.number_variables)) {
+            const double scaling = std::min(1., 1./std::abs(this->proximal_center[variable_index]));
+            const double proximal_term = this->proximal_coefficient * scaling * scaling;
+            result[variable_index] += proximal_term * x[variable_index];
+         }
+      }
+   }
+
    // Lagrangian gradient split in two parts: objective contribution and constraints' contribution
    void l1RelaxedProblem::evaluate_lagrangian_gradient(LagrangianGradient<double>& lagrangian_gradient, Iterate& iterate,
          const Multipliers& multipliers) const {

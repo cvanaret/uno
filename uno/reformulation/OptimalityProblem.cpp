@@ -32,6 +32,10 @@ namespace uno {
       this->model.evaluate_lagrangian_hessian(x, this->get_objective_multiplier(), multipliers, hessian);
    }
 
+   void OptimalityProblem::compute_hessian_vector_product(const Vector<double>& x, const Vector<double>& multipliers, Vector<double>& result) const {
+      this->model.compute_hessian_vector_product(x, this->get_objective_multiplier(), multipliers, result);
+   }
+
    // Lagrangian gradient split in two parts: objective contribution and constraints' contribution
    void OptimalityProblem::evaluate_lagrangian_gradient(LagrangianGradient<double>& lagrangian_gradient, Iterate& iterate,
          const Multipliers& multipliers) const {

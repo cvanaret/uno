@@ -9,15 +9,21 @@ namespace uno {
       [[nodiscard]] const char* what() const noexcept override = 0;
    };
 
+   struct FunctionEvaluationError : EvaluationError {
+      [[nodiscard]] const char* what() const noexcept override {
+         return "A numerical error was encountered while evaluating a function\n";
+      }
+   };
+
    struct GradientEvaluationError : EvaluationError {
       [[nodiscard]] const char* what() const noexcept override {
          return "A numerical error was encountered while evaluating a gradient\n";
       }
    };
 
-   struct FunctionEvaluationError : EvaluationError {
+   struct HessianEvaluationError : EvaluationError {
       [[nodiscard]] const char* what() const noexcept override {
-         return "A numerical error was encountered while evaluating a function\n";
+         return "A numerical error was encountered while evaluating the Lagrangian Hessian\n";
       }
    };
 } // namespace

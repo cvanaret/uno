@@ -68,6 +68,26 @@ namespace uno {
       }
    }
 
+   void PrimalDualInteriorPointProblem::compute_hessian_vector_product(const Vector<double>& x, const Vector<double>& multipliers,
+         Vector<double>& result) const {
+      // original Lagrangian Hessian
+      this->problem.compute_hessian_vector_product(x, multipliers, result);
+
+      // barrier terms
+      for (size_t variable_index: Range(this->problem.number_variables)) {
+         double diagonal_barrier_term = 0.;
+         if (is_finite(this->problem.variable_lower_bound(variable_index))) { // lower bounded
+            const double distance_to_bound = x[variable_index] - this->problem.variable_lower_bound(variable_index);
+            diagonal_barrier_term += this->current_multipliers.lower_bounds[variable_index] / distance_to_bound;
+         }
+         if (is_finite(this->problem.variable_upper_bound(variable_index))) { // upper bounded
+            const double distance_to_bound = x[variable_index] - this->problem.variable_upper_bound(variable_index);
+            diagonal_barrier_term += this->current_multipliers.upper_bounds[variable_index] / distance_to_bound;
+         }
+         result[variable_index] += diagonal_barrier_term * x[variable_index];
+      }
+   }
+
    double PrimalDualInteriorPointProblem::variable_lower_bound(size_t /*variable_index*/) const {
       return -INF<double>;
    }
