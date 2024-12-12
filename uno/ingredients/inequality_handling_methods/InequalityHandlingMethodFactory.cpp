@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project directory for details.
 
 #include <string>
+#include <ingredients/subproblem_solvers/LPSolverFactory.hpp>
 #include "InequalityHandlingMethod.hpp"
 #include "InequalityHandlingMethodFactory.hpp"
 #include "inequality_constrained_methods/QPSubproblem.hpp"
@@ -15,7 +16,7 @@ namespace uno {
    std::unique_ptr<InequalityHandlingMethod> InequalityHandlingMethodFactory::create(size_t number_variables, size_t number_constraints, size_t number_objective_gradient_nonzeros,
          size_t number_jacobian_nonzeros, size_t number_hessian_nonzeros, const Options& options) {
       const std::string subproblem_strategy = options.get_string("subproblem");
-      // active-set methods
+      // inequality-constrained methods
       if (subproblem_strategy == "QP") {
          return std::make_unique<QPSubproblem>(number_variables, number_constraints, number_objective_gradient_nonzeros, number_jacobian_nonzeros,
                number_hessian_nonzeros, options);
@@ -36,6 +37,9 @@ namespace uno {
       std::vector<std::string> strategies{};
       if (not QPSolverFactory::available_solvers().empty()) {
          strategies.emplace_back("QP");
+         strategies.emplace_back("LP");
+      }
+      else if (not LPSolverFactory::available_solvers().empty()) {
          strategies.emplace_back("LP");
       }
       if (not SymmetricIndefiniteLinearSolverFactory::available_solvers().empty()) {
