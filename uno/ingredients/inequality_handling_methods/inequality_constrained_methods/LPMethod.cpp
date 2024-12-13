@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project directory for details.
 
 #include "LPMethod.hpp"
-#include "ingredients/constraint_relaxation_strategies/OptimizationProblem.hpp"
+#include "optimization/OptimizationProblem.hpp"
 #include "ingredients/subproblem_solvers/LPSolver.hpp"
 #include "ingredients/subproblem_solvers/LPSolverFactory.hpp"
 #include "ingredients/subproblems/LagrangeNewtonSubproblem.hpp"

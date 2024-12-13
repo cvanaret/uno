@@ -3,7 +3,7 @@
 
 #include <cassert>
 #include "BQPDSolver.hpp"
-#include "ingredients/constraint_relaxation_strategies/OptimizationProblem.hpp"
+#include "optimization/OptimizationProblem.hpp"
 #include "ingredients/hessian_models/HessianModel.hpp"
 #include "ingredients/subproblems/LagrangeNewtonSubproblem.hpp"
 #include "linear_algebra/SymmetricMatrix.hpp"

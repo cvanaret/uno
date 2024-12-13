@@ -6,7 +6,7 @@
 
 #include <cstddef>
 #include <vector>
-#include "ingredients/constraint_relaxation_strategies/OptimizationProblem.hpp"
+#include "optimization/OptimizationProblem.hpp"
 #include "optimization/Iterate.hpp"
 
 namespace uno {
@@ -33,14 +33,14 @@ namespace uno {
             HessianModel& hessian_model, double trust_region_radius);
 
       void evaluate_objective_gradient(SparseVector<double>& linear_objective);
-      void evaluate_constraints(std::vector<double>& constraints);
+      void evaluate_constraints(Vector<double>& constraints);
       void evaluate_constraint_jacobian(RectangularMatrix<double>& jacobian);
       void evaluate_hessian(Statistics& statistics, SymmetricMatrix<size_t, double>& hessian);
 
       template <typename Array>
       void set_variable_bounds(Array& lower_bounds, Array& upper_bounds);
       template <typename Array>
-      void set_constraint_bounds(const std::vector<double>& constraints, Array& lower_bounds, Array& upper_bounds);
+      void set_constraint_bounds(const Vector<double>& constraints, Array& lower_bounds, Array& upper_bounds);
 
    protected:
       const OptimizationProblem& problem;
@@ -67,7 +67,7 @@ namespace uno {
    }
 
    template <typename Array>
-   void LagrangeNewtonSubproblem::set_constraint_bounds(const std::vector<double>& constraints, Array& lower_bounds, Array& upper_bounds) {
+   void LagrangeNewtonSubproblem::set_constraint_bounds(const Vector<double>& constraints, Array& lower_bounds, Array& upper_bounds) {
       for (size_t constraint_index: Range(this->problem.number_constraints)) {
          lower_bounds[constraint_index] = problem.constraint_lower_bound(constraint_index) - constraints[constraint_index];
          upper_bounds[constraint_index] = problem.constraint_upper_bound(constraint_index) - constraints[constraint_index];

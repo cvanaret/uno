@@ -5,7 +5,6 @@
 #define UNO_MODEL_H
 
 #include <string>
-#include <vector>
 #include "linear_algebra/Norm.hpp"
 #include "optimization/IterateStatus.hpp"
 #include "symbolic/VectorExpression.hpp"
@@ -14,6 +13,7 @@ namespace uno {
    // forward declarations
    template <typename ElementType>
    class Collection;
+   class Iterate;
    template <typename ElementType>
    class RectangularMatrix;
    template <typename ElementType>
@@ -26,14 +26,6 @@ namespace uno {
    enum FunctionType {LINEAR, NONLINEAR};
    enum BoundType {EQUAL_BOUNDS, BOUNDED_LOWER, BOUNDED_UPPER, BOUNDED_BOTH_SIDES, UNBOUNDED};
 
-   // forward declaration
-   class Iterate;
-
-   /*! \class Problem
-    * \brief Optimization problem
-    *
-    *  Description of an optimization problem
-    */
    class Model {
    public:
       Model(std::string name, size_t number_variables, size_t number_constraints, double objective_sign);
@@ -46,7 +38,7 @@ namespace uno {
 
       [[nodiscard]] virtual double evaluate_objective(const Vector<double>& x) const = 0;
       virtual void evaluate_objective_gradient(const Vector<double>& x, SparseVector<double>& gradient) const = 0;
-      virtual void evaluate_constraints(const Vector<double>& x, std::vector<double>& constraints) const = 0;
+      virtual void evaluate_constraints(const Vector<double>& x, Vector<double>& constraints) const = 0;
       virtual void evaluate_constraint_gradient(const Vector<double>& x, size_t constraint_index, SparseVector<double>& gradient) const = 0;
       virtual void evaluate_constraint_jacobian(const Vector<double>& x, RectangularMatrix<double>& constraint_jacobian) const = 0;
       virtual void evaluate_lagrangian_hessian(const Vector<double>& x, double objective_multiplier, const Vector<double>& multipliers,

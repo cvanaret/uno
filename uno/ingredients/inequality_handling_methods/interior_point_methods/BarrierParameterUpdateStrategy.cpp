@@ -5,7 +5,7 @@
 #include <cmath>
 #include "BarrierParameterUpdateStrategy.hpp"
 #include "optimization/Iterate.hpp"
-#include "ingredients/constraint_relaxation_strategies/OptimizationProblem.hpp"
+#include "optimization/OptimizationProblem.hpp"
 #include "symbolic/VectorExpression.hpp"
 #include "tools/Logger.hpp"
 #include "options/Options.hpp"

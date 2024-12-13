@@ -43,7 +43,7 @@ namespace uno {
       scale(gradient, this->scaling.get_objective_scaling());
    }
 
-   void ScaledModel::evaluate_constraints(const Vector<double>& x, std::vector<double>& constraints) const {
+   void ScaledModel::evaluate_constraints(const Vector<double>& x, Vector<double>& constraints) const {
       this->model->evaluate_constraints(x, constraints);
       for (size_t constraint_index: Range(this->number_constraints)) {
          constraints[constraint_index] *= this->scaling.get_constraint_scaling(constraint_index);

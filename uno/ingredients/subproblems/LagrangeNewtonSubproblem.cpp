@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project directory for details.
 
 #include "LagrangeNewtonSubproblem.hpp"
-#include "ingredients/constraint_relaxation_strategies/OptimizationProblem.hpp"
+#include "optimization/OptimizationProblem.hpp"
 #include "ingredients/hessian_models/HessianModel.hpp"
 #include "optimization/Iterate.hpp"
 
@@ -17,7 +17,7 @@ namespace uno {
       this->problem.evaluate_objective_gradient(this->current_iterate, linear_objective);
    }
 
-   void LagrangeNewtonSubproblem::evaluate_constraints(std::vector<double>& constraints) {
+   void LagrangeNewtonSubproblem::evaluate_constraints(Vector<double>& constraints) {
       this->problem.evaluate_constraints(this->current_iterate, constraints);
    }
 

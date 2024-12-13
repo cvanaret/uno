@@ -61,7 +61,7 @@ namespace uno {
 
    private:
       std::vector<double> lower_bounds{}, upper_bounds{}; // lower and upper bounds of variables and constraints
-      std::vector<double> constraints;
+      Vector<double> constraints;
       SparseVector<double> linear_objective;
       RectangularMatrix<double> constraint_jacobian;
       std::vector<double> bqpd_jacobian{};
