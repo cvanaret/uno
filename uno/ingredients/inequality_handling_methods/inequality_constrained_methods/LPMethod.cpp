@@ -13,9 +13,8 @@
 namespace uno {
    LPMethod::LPMethod(size_t number_variables, size_t number_constraints, size_t number_objective_gradient_nonzeros,
          size_t number_jacobian_nonzeros, const Options& options) :
-         InequalityConstrainedMethod("zero", number_variables, number_constraints, 0, false, options),
-         solver(LPSolverFactory::create(number_variables, number_constraints,
-               number_objective_gradient_nonzeros, number_jacobian_nonzeros, options)) {
+         InequalityConstrainedMethod("zero", number_variables, 0, false, options),
+         solver(LPSolverFactory::create(number_variables, number_constraints, number_objective_gradient_nonzeros, number_jacobian_nonzeros, options)) {
    }
 
    LPMethod::~LPMethod() { }
