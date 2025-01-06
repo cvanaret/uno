@@ -40,7 +40,7 @@ namespace uno {
       }
    }
 
-   void PrimalDualInteriorPointProblem::evaluate_constraints(Iterate& iterate, std::vector<double>& constraints) const {
+   void PrimalDualInteriorPointProblem::evaluate_constraints(Iterate& iterate, Vector<double>& constraints) const {
       problem.evaluate_constraints(iterate, constraints);
    }
 
@@ -152,7 +152,7 @@ namespace uno {
       }
    }
 
-   double PrimalDualInteriorPointProblem::complementarity_error(const Vector<double>& primals, const std::vector<double>& constraints,
+   double PrimalDualInteriorPointProblem::complementarity_error(const Vector<double>& primals, const Vector<double>& constraints,
          const Multipliers& multipliers, double shift_value, Norm residual_norm) const {
       return this->problem.complementarity_error(primals, constraints, multipliers, shift_value, residual_norm);
    }

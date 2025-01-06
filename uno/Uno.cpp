@@ -166,7 +166,7 @@ namespace uno {
 
    std::string Uno::get_strategy_combination(const Options& options) {
       return options.get_string("globalization_mechanism") + " " + options.get_string("constraint_relaxation_strategy") + " " +
-                                options.get_string("globalization_strategy") + " " + options.get_string("subproblem");
+                                options.get_string("globalization_strategy") + " " + options.get_string("inequality_handling_method");
 
    }
 

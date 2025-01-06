@@ -6,7 +6,7 @@
 
 </div>
 
-Uno (Unifying Nonlinear Optimization) is a C++ library that unifies methods for solving nonlinearly constrained optimization problems of the form:
+Uno (Unifying Nonlinear Optimization) is a C++ Lagrange-Newton solver that unifies methods for solving nonlinearly constrained optimization problems of the form:
 
 $$
 \begin{align}
@@ -25,14 +25,15 @@ Oscar Dowson [@odow](https://github.com/odow), David Kiessling [@david0oo](https
 
 ## Unifying nonlinearly constrained nonconvex optimization
 
-We argue that most optimization methods can be broken down into four generic ingredients:
+We argue that most optimization methods can be broken down into the following generic ingredients:
 * a **constraint relaxation strategy**: a systematic way to relax the nonlinear constraints;
-* a **subproblem**: a local model of the (possibly relaxed) problem at the current primal-dual iterate;
+* an **inequality handling method**: a way of handling inequality constraints;
+* a **subproblem**: a local model of the (possibly relaxed) problem at the current primal-dual iterate. Uno currently only supports Lagrange-Newton;
 * a **globalization strategy**: an acceptance test of the trial iterate;
 * a **globalization mechanism**: a recourse action upon rejection of the trial iterate.
 
 <!--
-The following hypergraph illustrates how some of the state-of-the-art solvers can be decomposed in terms of the four ingredients:
+The following hypergraph illustrates how some of the state-of-the-art solvers can be decomposed in terms of the basic ingredients:
 <p align="center">
    <img src="docs/figures/combination_hypergraph.png" alt="Combination hypergraph" width="75%" />
 </p>
@@ -112,7 +113,7 @@ Uno can be installed in Julia via [Uno_jll.jl](https://github.com/JuliaBinaryWra
 ### Combining strategies on the fly
 
 For an overview of the available strategies, type: ```./uno_ampl --strategies```:
+- to pick a constraint relaxation strategy, use the argument: ```constraint_relaxation_strategy=[feasibility_restoration|l1_relaxation]``` 
+- to pick an inequality handling method, use the argument: ```inequality_handling_method=[QP|LP|primal_dual_interior_point]```  
+ - to pick a globalization strategy, use the argument: ```globalization_strategy=[l1_merit|fletcher_filter_method|waechter_filter_method|funnel_method]```  
 - to pick a globalization mechanism, use the argument : ```globalization_mechanism=[LS|TR]```  
-- to pick a constraint relaxation strategy, use the argument: ```constraint_relaxation_strategy=[feasibility_restoration|l1_relaxation]```  
-- to pick a globalization strategy, use the argument: ```globalization_strategy=[l1_merit|fletcher_filter_method|waechter_filter_method|funnel_method]```  
-- to pick a subproblem method, use the argument: ```subproblem=[QP|LP|primal_dual_interior_point]```  

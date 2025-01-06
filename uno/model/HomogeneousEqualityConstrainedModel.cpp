@@ -61,7 +61,7 @@ namespace uno {
       this->model->evaluate_objective_gradient(x, gradient);
    }
 
-   void HomogeneousEqualityConstrainedModel::evaluate_constraints(const Vector<double>& x, std::vector<double>& constraints) const {
+   void HomogeneousEqualityConstrainedModel::evaluate_constraints(const Vector<double>& x, Vector<double>& constraints) const {
       this->model->evaluate_constraints(x, constraints);
       // inequality constraints: add the slacks
       for (const auto [constraint_index, slack_index]: this->get_slacks()) {

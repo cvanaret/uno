@@ -4,7 +4,7 @@
 #ifndef UNO_PRIMALDUALINTERIORPOINTPROBLEM_H
 #define UNO_PRIMALDUALINTERIORPOINTPROBLEM_H
 
-#include "ingredients/constraint_relaxation_strategies/OptimizationProblem.hpp"
+#include "optimization/OptimizationProblem.hpp"
 
 namespace uno {
    class PrimalDualInteriorPointProblem : public OptimizationProblem {
@@ -14,7 +14,7 @@ namespace uno {
       // function evaluations
       [[nodiscard]] double get_objective_multiplier() const override;
       void evaluate_objective_gradient(Iterate& iterate, SparseVector<double>& objective_gradient) const override;
-      void evaluate_constraints(Iterate& iterate, std::vector<double>& constraints) const override;
+      void evaluate_constraints(Iterate& iterate, Vector<double>& constraints) const override;
       void evaluate_constraint_jacobian(Iterate& iterate, RectangularMatrix<double>& constraint_jacobian) const override;
       void evaluate_lagrangian_hessian(const Vector<double>& x, const Vector<double>& multipliers,
             SymmetricMatrix<size_t, double>& hessian) const override;
@@ -34,8 +34,8 @@ namespace uno {
 
       void evaluate_lagrangian_gradient(LagrangianGradient<double>& lagrangian_gradient, Iterate& iterate,
             const Multipliers& multipliers) const override;
-      [[nodiscard]] double complementarity_error(const Vector<double>& primals, const std::vector<double>& constraints,
-            const Multipliers& multipliers, double shift_value, Norm residual_norm) const override;
+      [[nodiscard]] double complementarity_error(const Vector<double>& primals, const Vector<double>& constraints, const Multipliers& multipliers,
+         double shift_value, Norm residual_norm) const override;
 
    protected:
       const OptimizationProblem& problem;

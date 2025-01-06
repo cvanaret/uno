@@ -51,18 +51,17 @@ namespace uno {
       BQPDSolver(size_t number_variables, size_t number_constraints, size_t number_objective_gradient_nonzeros, size_t number_jacobian_nonzeros,
             size_t number_hessian_nonzeros, BQPDProblemType problem_type, const Options& options);
 
-      void solve_LP(const OptimizationProblem& problem, Iterate& current_iterate, const Vector<double>& initial_point, Direction& direction,
-            double trust_region_radius, const WarmstartInformation& warmstart_information) override;
+      void solve_LP(Statistics& statistics, LagrangeNewtonSubproblem& subproblem, const Vector<double>& initial_point, Direction& direction,
+            const WarmstartInformation& warmstart_information) override;
 
-      void solve_QP(Statistics& statistics, const OptimizationProblem& problem, Iterate& current_iterate, const Vector<double>& current_multipliers,
-            const Vector<double>& initial_point, Direction& direction, HessianModel& hessian_model, double trust_region_radius,
+      void solve_QP(Statistics& statistics, LagrangeNewtonSubproblem& subproblem, const Vector<double>& initial_point, Direction& direction,
             const WarmstartInformation& warmstart_information) override;
 
       [[nodiscard]] double hessian_quadratic_product(const Vector<double>& primal_direction) const override;
 
    private:
       std::vector<double> lower_bounds{}, upper_bounds{}; // lower and upper bounds of variables and constraints
-      std::vector<double> constraints;
+      Vector<double> constraints;
       SparseVector<double> linear_objective;
       RectangularMatrix<double> constraint_jacobian;
       std::vector<double> bqpd_jacobian{};
@@ -89,9 +88,8 @@ namespace uno {
 
       const bool print_subproblem;
 
-      void set_up_subproblem(const OptimizationProblem& problem, Iterate& current_iterate, double trust_region_radius,
-            const WarmstartInformation& warmstart_information);
-      void solve_subproblem(const OptimizationProblem& problem, const Vector<double>& initial_point, Direction& direction,
+      void set_up_subproblem(LagrangeNewtonSubproblem& subproblem, const WarmstartInformation& warmstart_information);
+      void solve_subproblem(LagrangeNewtonSubproblem& subproblem, const Vector<double>& initial_point, Direction& direction,
             const WarmstartInformation& warmstart_information);
       [[nodiscard]] static BQPDMode determine_mode(const WarmstartInformation& warmstart_information);
       void save_hessian_to_local_format();

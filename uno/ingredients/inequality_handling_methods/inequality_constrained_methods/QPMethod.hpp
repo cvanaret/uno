@@ -1,8 +1,8 @@
 // Copyright (c) 2018-2024 Charlie Vanaret
 // Licensed under the MIT license. See LICENSE file in the project directory for details.
 
-#ifndef UNO_QPSUBPROBLEM_H
-#define UNO_QPSUBPROBLEM_H
+#ifndef UNO_QPMETHOD_H
+#define UNO_QPMETHOD_H
 
 #include <memory>
 #include "InequalityConstrainedMethod.hpp"
@@ -11,11 +11,11 @@ namespace uno {
    // forward reference
    class QPSolver;
 
-   class QPSubproblem : public InequalityConstrainedMethod {
+   class QPMethod : public InequalityConstrainedMethod {
    public:
-      QPSubproblem(size_t number_variables, size_t number_constraints, size_t number_objective_gradient_nonzeros, size_t number_jacobian_nonzeros,
+      QPMethod(size_t number_variables, size_t number_constraints, size_t number_objective_gradient_nonzeros, size_t number_jacobian_nonzeros,
             size_t number_hessian_nonzeros, const Options& options);
-      ~QPSubproblem();
+      ~QPMethod();
 
       void generate_initial_iterate(const OptimizationProblem& problem, Iterate& initial_iterate) override;
       void solve(Statistics& statistics, const OptimizationProblem& problem, Iterate& current_iterate,  const Multipliers& current_multipliers,
@@ -29,4 +29,4 @@ namespace uno {
    };
 } // namespace
 
-#endif // UNO_QPSUBPROBLEM_H
+#endif // UNO_QPMETHOD_H

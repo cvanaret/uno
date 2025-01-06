@@ -40,7 +40,7 @@ namespace uno {
       // shortcuts for state-of-the-art combinations
       if (preset_name == "ipopt") {
          options["constraint_relaxation_strategy"] = "feasibility_restoration";
-         options["subproblem"] = "primal_dual_interior_point";
+         options["inequality_handling_method"] = "primal_dual_interior_point";
          options["globalization_mechanism"] = "LS";
          options["globalization_strategy"] = "waechter_filter_method";
          options["filter_type"] = "standard";
@@ -69,7 +69,7 @@ namespace uno {
       }
       else if (preset_name == "filtersqp") {
          options["constraint_relaxation_strategy"] = "feasibility_restoration";
-         options["subproblem"] = "QP";
+         options["inequality_handling_method"] = "QP";
          options["globalization_mechanism"] = "TR";
          options["globalization_strategy"] = "fletcher_filter_method";
          options["filter_type"] = "standard";
@@ -87,7 +87,7 @@ namespace uno {
       }
       else if (preset_name == "byrd") {
          options["constraint_relaxation_strategy"] = "l1_relaxation";
-         options["subproblem"] = "QP";
+         options["inequality_handling_method"] = "QP";
          options["globalization_mechanism"] = "LS";
          options["globalization_strategy"] = "l1_merit";
          options["l1_relaxation_initial_parameter"] = "1";
@@ -106,7 +106,7 @@ namespace uno {
       }
       else if (preset_name == "funnelsqp") {
          options["constraint_relaxation_strategy"] = "feasibility_restoration";
-         options["subproblem"] = "QP";
+         options["inequality_handling_method"] = "QP";
          options["globalization_mechanism"] = "TR";
          options["globalization_strategy"] = "funnel_method";
          options["progress_norm"] = "L1";
@@ -132,7 +132,7 @@ namespace uno {
       }
       else if (preset_name == "filterslp") {
          options["constraint_relaxation_strategy"] = "feasibility_restoration";
-         options["subproblem"] = "LP";
+         options["inequality_handling_method"] = "LP";
          options["globalization_mechanism"] = "TR";
          options["globalization_strategy"] = "fletcher_filter_method";
          options["filter_type"] = "standard";

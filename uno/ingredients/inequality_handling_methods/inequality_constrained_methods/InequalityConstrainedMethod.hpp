@@ -12,8 +12,8 @@
 namespace uno {
    class InequalityConstrainedMethod : public InequalityHandlingMethod {
    public:
-      InequalityConstrainedMethod(const std::string& hessian_model, size_t number_variables, size_t number_constraints,
-            size_t number_hessian_nonzeros, bool convexify, const Options& options);
+      InequalityConstrainedMethod(const std::string& hessian_model, size_t number_variables, size_t number_hessian_nonzeros, bool convexify,
+            const Options& options);
       ~InequalityConstrainedMethod() override = default;
       
       void initialize_statistics(Statistics& statistics, const Options& options) override;
@@ -30,17 +30,7 @@ namespace uno {
 
    protected:
       Vector<double> initial_point{};
-      std::vector<double> direction_lower_bounds{};
-      std::vector<double> direction_upper_bounds{};
-      std::vector<double> linearized_constraints_lower_bounds{};
-      std::vector<double> linearized_constraints_upper_bounds{};
 
-      SparseVector<double> objective_gradient; /*!< Sparse Jacobian of the objective */
-      std::vector<double> constraints; /*!< Constraint values (size \f$m)\f$ */
-      RectangularMatrix<double> constraint_jacobian; /*!< Sparse Jacobian of the constraints */
-
-      void set_direction_bounds(const OptimizationProblem& problem, const Iterate& current_iterate);
-      void set_linearized_constraint_bounds(const OptimizationProblem& problem, const std::vector<double>& current_constraints);
       static void compute_dual_displacements(const Multipliers& current_multipliers, Multipliers& direction_multipliers);
    };
 } // namespace

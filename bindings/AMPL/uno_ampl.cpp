@@ -74,7 +74,7 @@ namespace uno {
       std::cout << "To solve an AMPL model, type ./uno_ampl model.nl -AMPL [option_name=option_value ...]\n";
       std::cout << "To choose a constraint relaxation strategy, use the argument constraint_relaxation_strategy="
                    "[feasibility_restoration|l1_relaxation]\n";
-      std::cout << "To choose a subproblem method, use the argument subproblem=[QP|LP|primal_dual_interior_point]\n";
+      std::cout << "To choose an inequality handling method, use the argument inequality_handling_method=[QP|LP|primal_dual_interior_point]\n";
       std::cout << "To choose a globalization mechanism, use the argument globalization_mechanism=[LS|TR]\n";
       std::cout << "To choose a globalization strategy, use the argument globalization_strategy="
                    "[l1_merit|fletcher_filter_method|waechter_filter_method]\n";
